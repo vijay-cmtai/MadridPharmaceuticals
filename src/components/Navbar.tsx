@@ -14,77 +14,65 @@ import {
   Edit3,
   PhoneCall,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "react-router-dom"; // Import useLocation
-import logoImage from "../logo.png";
+import { Button } from "@/components/ui/button"; // Ensure path is correct
+import { Link, useLocation } from "react-router-dom";
+import logoImage from "../logo.png"; // Ensure path is correct
 
-// Define navLinks (assuming it's the same as before)
 const navLinks = [
   { href: "/", label: "Home" },
   {
     label: "About Us",
     dropdown: true,
-    // For dropdowns, we might want to highlight the main label if any of its items are active.
-    // Or, you can highlight specific dropdown items if the nav structure changes.
-    // For simplicity, we'll check if the current path starts with any of the dropdown item hrefs.
-    activeCheckPaths: ["/about", "/vision-mission", "/quality"], // Paths that make "About Us" active
+    activeCheckPaths: ["/about", "/vision-mission", "/quality"],
     items: [
       {
         href: "/about",
         label: "About Company",
         subtitle: "Our story",
         icon: Briefcase,
-        imgSrc: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56",
       },
       {
         href: "/vision-mission",
         label: "Vision & Mission",
         subtitle: "Our goals",
         icon: Users,
-        imgSrc: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae",
       },
       {
         href: "/quality",
         label: "Quality Assurance",
         subtitle: "Our standards",
         icon: ShieldCheck,
-        imgSrc: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
       },
     ],
   },
   {
     label: "Products",
     dropdown: true,
-    activeCheckPaths: ["/products"], // Main products page or any sub-product page
+    activeCheckPaths: ["/products"],
     items: [
       {
         href: "/products",
         label: "All Products",
         subtitle: "Complete range",
         icon: ShoppingBag,
-        imgSrc:
-          "https://www.servocarelifesciences.in/wp-content/uploads/2020/03/medicine-all.jpg",
       },
       {
         href: "/products/lexprate-cr",
         label: "Lexprate-CR",
         subtitle: "Cardiovascular",
         icon: Pill,
-        imgSrc: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae",
       },
       {
         href: "/products/calvilux",
         label: "Calvilux",
         subtitle: "Bone Health",
         icon: Package,
-        imgSrc: "https://images.unsplash.com/photo-1559757175-0eb30cd8c063",
       },
       {
         href: "/products/multilux",
         label: "Multilux",
         subtitle: "Multivitamin",
         icon: Pill,
-        imgSrc: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88",
       },
     ],
   },
@@ -97,23 +85,21 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openDesktopDropdown, setOpenDesktopDropdown] = useState(null);
   const [openMobileSubmenu, setOpenMobileSubmenu] = useState(null);
-  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [isDrawerActuallyVisible, setIsDrawerActuallyVisible] = useState(false);
 
   const navbarRef = useRef(null);
   const mobileDrawerRef = useRef(null);
-  const location = useLocation(); // Get current location
+  const mobileMenuButtonRef = useRef(null);
+  const location = useLocation();
 
-  // Helper function to determine if a link or dropdown is active
   const isActive = (link) => {
     if (link.dropdown && link.activeCheckPaths) {
-      // For dropdowns, check if the current pathname starts with any of the activeCheckPaths
-      // or exactly matches a sub-item's href that implies the parent is active.
-      // A more robust check for products could be just location.pathname.startsWith("/products")
       if (
         link.label === "Products" &&
         location.pathname.startsWith("/products")
-      )
+      ) {
         return true;
+      }
       return link.activeCheckPaths.some((path) =>
         location.pathname.startsWith(path)
       );
@@ -123,7 +109,7 @@ const Navbar = () => {
 
   useEffect(() => {
     if (isMobileMenuOpen) {
-      setIsDrawerVisible(true);
+      setIsDrawerActuallyVisible(true);
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -142,62 +128,61 @@ const Navbar = () => {
         isMobileMenuOpen &&
         mobileDrawerRef.current &&
         !mobileDrawerRef.current.contains(event.target) &&
-        navbarRef.current &&
-        !navbarRef.current.contains(event.target)
+        mobileMenuButtonRef.current &&
+        !mobileMenuButtonRef.current.contains(event.target)
       ) {
-        handleToggleMobileMenu();
+        setIsMobileMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [isMobileMenuOpen]);
 
-  const handleDesktopDropdownEnter = (label) => setOpenDesktopDropdown(label);
-  const handleDesktopDropdownLeave = () => setOpenDesktopDropdown(null);
-  const toggleMobileSubmenu = (label) =>
-    setOpenMobileSubmenu(openMobileSubmenu === label ? null : label);
-
-  const handleToggleMobileMenu = () => {
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen((prev) => !prev);
     if (isMobileMenuOpen) {
-      setIsMobileMenuOpen(false);
-    } else {
-      setIsDrawerVisible(true);
-      setIsMobileMenuOpen(true);
+      setOpenMobileSubmenu(null);
     }
   };
 
-  const closeMobileMenuAndSubmenus = () => {
-    handleToggleMobileMenu();
+  const toggleMobileSubmenu = (label) => {
+    setOpenMobileSubmenu(openMobileSubmenu === label ? null : label);
+  };
+
+  const closeMobileMenuAndNavigate = () => {
+    setIsMobileMenuOpen(false);
     setOpenMobileSubmenu(null);
   };
+
+  const handleDesktopDropdownEnter = (label) => setOpenDesktopDropdown(label);
+  const handleDesktopDropdownLeave = () => setOpenDesktopDropdown(null);
 
   return (
     <>
       <nav
         ref={navbarRef}
-        className="bg-white/90 backdrop-blur-lg shadow-lg sticky top-0 z-50 border-b border-slate-200/80"
+        className="bg-white/90 backdrop-blur-md border-b sticky top-0 z-40 shadow-sm"
       >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
             <Link
               to="/"
-              className="flex items-center shrink-0"
+              className="flex items-center"
               onClick={
-                isMobileMenuOpen ? closeMobileMenuAndSubmenus : undefined
+                isMobileMenuOpen ? closeMobileMenuAndNavigate : undefined
               }
             >
               <img
                 src={logoImage}
-                alt="Madrid Pharmaceuticalss Logo"
-                className="h-12 w-auto mr-3"
+                alt="Madrid Pharmaceuticals Logo"
+                className="h-10 w-auto mr-2"
               />
             </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-1">
-              {navLinks.map((link) => {
-                const active = isActive(link);
-                return link.dropdown ? (
+            <div className="hidden lg:flex space-x-1 items-center">
+              {navLinks.map((link) =>
+                link.dropdown ? (
                   <div
                     key={link.label}
                     className="relative"
@@ -205,108 +190,81 @@ const Navbar = () => {
                     onMouseLeave={handleDesktopDropdownLeave}
                   >
                     <button
-                      className={`flex items-center px-4 py-2 rounded-md font-medium transition-colors duration-200 group
-                                      ${active ? "text-pharma-blue" : "text-slate-700 hover:text-pharma-blue"}`}
+                      className={`flex items-center text-sm font-medium px-3 py-2 rounded-md group transition-colors ${
+                        isActive(link)
+                          ? "text-pharma-blue"
+                          : "text-gray-700 hover:text-pharma-blue"
+                      }`}
                     >
                       {link.label}
                       <ChevronDown
-                        className={`ml-1.5 h-4 w-4 transition-transform duration-200 ${openDesktopDropdown === link.label ? "rotate-180" : ""}`}
+                        className={`ml-1 w-4 h-4 transition-transform duration-200 ${openDesktopDropdown === link.label ? "rotate-180" : ""}`}
                       />
-                      {/* Underline for active dropdown parent */}
-                      <span
-                        className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-pharma-blue to-pharma-green transition-all duration-300
-                                       ${active ? "w-3/4" : "w-0 group-hover:w-3/4"}`}
-                      ></span>
                     </button>
-                    {openDesktopDropdown === link.label &&
-                      Array.isArray(link.items) && (
-                        <div
-                          className={`absolute top-full ${link.label === "Products" ? "left-1/2 -translate-x-1/2" : "left-0"} mt-2 w-max min-w-[20rem] max-w-md bg-white/95 backdrop-blur-md shadow-2xl border border-slate-200/70 rounded-xl p-2 z-[51] animate-fade-in-scale origin-top-left`}
-                        >
-                          <div
-                            className={`grid ${link.items.length > 2 ? "grid-cols-2" : "grid-cols-1"} gap-1`}
+                    {openDesktopDropdown === link.label && (
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white border rounded-lg shadow-xl z-[41] p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 min-w-[300px] max-w-md">
+                        {link.items.map((item) => (
+                          <Link
+                            key={item.href}
+                            to={item.href}
+                            className="flex items-center p-2.5 rounded-md hover:bg-pharma-blue/10 group/item"
+                            onClick={() => {
+                              setOpenDesktopDropdown(null);
+                              if (isMobileMenuOpen)
+                                closeMobileMenuAndNavigate();
+                            }}
                           >
-                            {link.items.map(
-                              (item, index) =>
-                                item && (
-                                  <Link
-                                    key={item.href || index}
-                                    to={item.href}
-                                    onClick={() => {
-                                      setOpenDesktopDropdown(null);
-                                      if (isMobileMenuOpen)
-                                        closeMobileMenuAndSubmenus();
-                                    }}
-                                    className={`flex items-center p-3 rounded-lg transition-all group/item
-                                            ${location.pathname.startsWith(item.href) ? "bg-pharma-blue/10 text-pharma-blue" : "hover:bg-pharma-blue/10"}`}
-                                  >
-                                    {item.imgSrc ? (
-                                      <img
-                                        src={item.imgSrc}
-                                        alt={item.label}
-                                        className="w-10 h-10 rounded-md object-cover mr-3 shrink-0"
-                                      />
-                                    ) : item.icon ? (
-                                      <item.icon
-                                        className={`w-6 h-6 mr-3 shrink-0 ${location.pathname.startsWith(item.href) ? "text-pharma-blue" : "text-pharma-blue group-hover/item:text-pharma-blue"}`}
-                                      />
-                                    ) : (
-                                      <div className="w-10 h-10 mr-3 shrink-0"></div>
-                                    )}
-                                    <div>
-                                      <div
-                                        className={`font-semibold text-sm ${location.pathname.startsWith(item.href) ? "text-pharma-blue" : "text-slate-800 group-hover/item:text-pharma-blue"}`}
-                                      >
-                                        {item.label || "No Label"}
-                                      </div>
-                                      {item.subtitle && (
-                                        <div className="text-xs text-slate-500">
-                                          {item.subtitle}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </Link>
-                                )
+                            {item.icon && (
+                              <item.icon className="w-5 h-5 text-pharma-blue mr-2.5 shrink-0" />
                             )}
-                          </div>
-                        </div>
-                      )}
+                            <div>
+                              <span className="text-sm font-medium text-gray-800 group-hover/item:text-pharma-blue">
+                                {item.label}
+                              </span>
+                              {item.subtitle && (
+                                <p className="text-xs text-gray-500">
+                                  {item.subtitle}
+                                </p>
+                              )}
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <Link
                     key={link.label}
                     to={link.href}
-                    className={`relative px-4 py-2 rounded-md font-medium transition-colors duration-200 group
-                               ${active ? "text-pharma-blue" : "text-slate-700 hover:text-pharma-blue"}`}
+                    className={`text-sm font-medium px-3 py-2 rounded-md ${
+                      isActive(link)
+                        ? "text-pharma-blue"
+                        : "text-gray-700 hover:text-pharma-blue"
+                    }`}
                   >
                     {link.label}
-                    <span
-                      className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-pharma-blue to-pharma-green transition-all duration-300
-                                     ${active ? "w-3/4" : "w-0 group-hover:w-3/4"}`}
-                    ></span>
                   </Link>
-                );
-              })}
-              <Link to="/contact" className="ml-4">
-                <Button className="bg-gradient-to-r from-pharma-blue to-pharma-green hover:from-pharma-blue/90 hover:to-pharma-green/90 text-white px-6 py-2.5 rounded-md shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-semibold">
+                )
+              )}
+              <Link to="/contact" className="ml-3">
+                <Button className="bg-gradient-to-r from-pharma-blue to-pharma-green hover:from-pharma-blue/90 hover:to-pharma-green/90 text-white px-5 py-2 text-sm">
                   Get Started
                 </Button>
               </Link>
             </div>
-
-            {/* Mobile menu button */}
             <div className="lg:hidden">
               <Button
+                ref={mobileMenuButtonRef}
                 variant="ghost"
                 size="icon"
-                onClick={handleToggleMobileMenu}
-                className="text-slate-700 hover:bg-pharma-blue/10 focus:ring-2 focus:ring-pharma-blue/50 relative z-[51]"
+                onClick={toggleMobileMenu}
+                className="text-gray-700 hover:bg-pharma-blue/10 focus:ring-2 focus:ring-pharma-blue/50 relative z-[51]"
                 aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
               >
                 {isMobileMenuOpen ? (
-                  <X className="h-7 w-7" />
+                  <X className="h-6 w-6" />
                 ) : (
-                  <Menu className="h-7 w-7" />
+                  <Menu className="h-6 w-6" />
                 )}
               </Button>
             </div>
@@ -314,88 +272,83 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Mobile Navigation Drawer */}
-      {isDrawerVisible && (
+      {isDrawerActuallyVisible && (
         <>
           <div
-            onClick={handleToggleMobileMenu}
-            className={`lg:hidden fixed inset-0 bg-black/40 z-30 ${isMobileMenuOpen ? "animate-fade-in" : "animate-fade-out pointer-events-none"}`}
+            className={`fixed inset-0 bg-black/50 z-45 transition-opacity duration-300 ease-in-out lg:hidden ${
+              isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+            onClick={toggleMobileMenu}
           ></div>
           <div
             ref={mobileDrawerRef}
-            className={`lg:hidden fixed top-20 right-0 bottom-auto w-full max-w-sm bg-white z-40 shadow-2xl flex flex-col
-                        transform transition-transform duration-300 ease-in-out 
-                        ${isMobileMenuOpen ? "translate-x-0 animate-slide-in-right" : "translate-x-full animate-slide-out-right"}`}
-            style={{ maxHeight: "calc(100vh - 5rem - 2rem)" }}
+            className={`fixed top-16 right-0 bg-white z-50 p-6 shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden
+              ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}
+              w-auto max-w-[90vw] sm:max-w-sm  /* Width classes */
+              max-h-[calc(100vh-4rem-2rem)] /* Max height, with some bottom margin */
+              overflow-y-auto /* Scroll if content exceeds max-h */
+            `}
             onAnimationEnd={() => {
-              if (!isMobileMenuOpen) setIsDrawerVisible(false);
+              if (!isMobileMenuOpen) setIsDrawerActuallyVisible(false);
             }}
           >
-            <div className="flex-grow overflow-y-auto py-6 px-4 sm:px-6">
+            <div className="min-w-[200px]">
+              {" "}
+              {/* Optional: adjust min-width or remove */}
               <div className="space-y-2">
-                {navLinks.map((link) => {
-                  const active = isActive(link);
-                  return (
+                {navLinks.map((link) =>
+                  link.dropdown ? (
                     <div
-                      key={link.label || link.href}
-                      className="border-b border-slate-200/70 last:border-b-0"
+                      key={link.label}
+                      className="border-b border-gray-200 last:border-b-0"
                     >
-                      {link.dropdown && Array.isArray(link.items) ? (
-                        <>
-                          <button
-                            onClick={() => toggleMobileSubmenu(link.label)}
-                            className={`w-full flex justify-between items-center text-left text-lg font-semibold py-3.5 transition-colors
-                                      ${active ? "text-pharma-blue" : "text-pharma-darkBlue"}`}
-                          >
-                            <span>{link.label}</span>
-                            {openMobileSubmenu === link.label ? (
-                              <ChevronUp className="w-5 h-5 text-pharma-blue" />
-                            ) : (
-                              <ChevronDown
-                                className={`w-5 h-5 ${active ? "text-pharma-blue" : "text-slate-500"}`}
-                              />
-                            )}
-                          </button>
-                          {openMobileSubmenu === link.label && (
-                            <div className="pl-5 py-2 space-y-1 bg-slate-50/70 rounded-md my-1">
-                              {link.items.map(
-                                (item, itemIndex) =>
-                                  item && (
-                                    <Link
-                                      key={item.href || itemIndex}
-                                      to={item.href}
-                                      onClick={closeMobileMenuAndSubmenus}
-                                      className={`flex items-center text-md font-medium rounded-md py-2.5 group transition-colors
-                                              ${location.pathname.startsWith(item.href) ? "text-pharma-blue font-bold" : "text-slate-700 hover:text-pharma-blue"}`}
-                                    >
-                                      {item.icon && (
-                                        <item.icon
-                                          className={`w-5 h-5 mr-3 transition-colors ${location.pathname.startsWith(item.href) ? "text-pharma-blue" : "text-pharma-blue/80 group-hover:text-pharma-blue"}`}
-                                        />
-                                      )}
-                                      {item.label || "No Label"}
-                                    </Link>
-                                  )
+                      <button
+                        className={`flex justify-between items-center w-full text-left text-lg font-semibold py-3 transition-colors ${isActive(link) ? "text-pharma-blue" : "text-gray-800"}`}
+                        onClick={() => toggleMobileSubmenu(link.label)}
+                      >
+                        <span>{link.label}</span>
+                        {openMobileSubmenu === link.label ? (
+                          <ChevronUp className="w-5 h-5 text-pharma-blue" />
+                        ) : (
+                          <ChevronDown
+                            className={`w-5 h-5 ${isActive(link) ? "text-pharma-blue" : "text-gray-500"}`}
+                          />
+                        )}
+                      </button>
+                      {openMobileSubmenu === link.label && (
+                        <div className="pl-4 py-2 mt-1 space-y-1 bg-gray-50 rounded-md">
+                          {link.items.map((item) => (
+                            <Link
+                              key={item.href}
+                              to={item.href}
+                              onClick={closeMobileMenuAndNavigate}
+                              className={`flex items-center text-base font-medium rounded-md py-2 group transition-colors ${location.pathname.startsWith(item.href) ? "text-pharma-blue font-semibold" : "text-gray-700 hover:text-pharma-blue"}`}
+                            >
+                              {item.icon && (
+                                <item.icon
+                                  className={`w-5 h-5 mr-3 transition-colors ${location.pathname.startsWith(item.href) ? "text-pharma-blue" : "text-pharma-blue/80 group-hover:text-pharma-blue"}`}
+                                />
                               )}
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <Link
-                          to={link.href}
-                          onClick={closeMobileMenuAndSubmenus}
-                          className={`block text-lg font-semibold py-3.5 transition-colors
-                                    ${active ? "text-pharma-blue" : "text-pharma-darkBlue hover:text-pharma-blue"}`}
-                        >
-                          {link.label}
-                        </Link>
+                              {item.label}
+                            </Link>
+                          ))}
+                        </div>
                       )}
                     </div>
-                  );
-                })}
-                <div className="pt-8">
-                  <Link to="/contact" onClick={closeMobileMenuAndSubmenus}>
-                    <Button className="w-full bg-gradient-to-r from-pharma-blue to-pharma-green hover:from-pharma-blue/90 hover:to-pharma-green/90 text-white px-6 py-3.5 rounded-lg shadow-lg text-lg font-semibold">
+                  ) : (
+                    <Link
+                      key={link.label}
+                      to={link.href}
+                      onClick={closeMobileMenuAndNavigate}
+                      className={`block text-lg py-3 font-semibold transition-colors border-b border-gray-200 last:border-b-0 ${isActive(link) ? "text-pharma-blue" : "text-gray-800 hover:text-pharma-blue"}`}
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                )}
+                <div className="pt-6">
+                  <Link to="/contact" onClick={closeMobileMenuAndNavigate}>
+                    <Button className="w-full bg-gradient-to-r from-pharma-blue to-pharma-green hover:from-pharma-blue/90 hover:to-pharma-green/90 text-white px-6 py-3 rounded-lg shadow-md text-base font-semibold">
                       Get Started
                     </Button>
                   </Link>
